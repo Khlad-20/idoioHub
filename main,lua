@@ -1,0 +1,423 @@
+-- سكريبت واجهة متقدمة وجميلة
+-- بواسطة: المطور
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- متغيرات السرعة والقفز
+local speedEnabled = false
+local jumpEnabled = false
+local flyEnabled = false
+local noclipEnabled = false
+local currentSpeed = 16
+local currentJumpPower = 50
+
+-- إنشاء الواجهة الرئيسية
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local TopBar = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local CloseButton = Instance.new("TextButton")
+local MinimizeButton = Instance.new("TextButton")
+local ContentFrame = Instance.new("Frame")
+local ScrollingFrame = Instance.new("ScrollingFrame")
+
+-- إعدادات الواجهة الأساسية
+ScreenGui.Name = "AdvancedGUI"
+ScreenGui.Parent = PlayerGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
+
+-- الإطار الرئيسي
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
+MainFrame.Size = UDim2.new(0, 400, 0, 500)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+-- إضافة تأثير الظل
+local Shadow = Instance.new("Frame")
+Shadow.Name = "Shadow"
+Shadow.Parent = MainFrame
+Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.BackgroundTransparency = 0.7
+Shadow.BorderSizePixel = 0
+Shadow.Position = UDim2.new(0, 3, 0, 3)
+Shadow.Size = UDim2.new(1, 0, 1, 0)
+Shadow.ZIndex = -1
+
+-- شريط العنوان
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+TopBar.BorderSizePixel = 0
+TopBar.Size = UDim2.new(1, 0, 0, 40)
+
+-- عنوان الواجهة
+Title.Name = "Title"
+Title.Parent = TopBar
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Size = UDim2.new(1, -80, 1, 0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "🚀 سكريپت متقدم - Advanced Script"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 16
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- زر الإغلاق
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = TopBar
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+CloseButton.BorderSizePixel = 0
+CloseButton.Position = UDim2.new(1, -35, 0, 5)
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "✕"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 14
+
+-- زر التصغير
+MinimizeButton.Name = "MinimizeButton"
+MinimizeButton.Parent = TopBar
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+MinimizeButton.BorderSizePixel = 0
+MinimizeButton.Position = UDim2.new(1, -70, 0, 5)
+MinimizeButton.Size = UDim2.new(0, 30, 0, 30)
+MinimizeButton.Font = Enum.Font.GothamBold
+MinimizeButton.Text = "-"
+MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.TextSize = 14
+
+-- إطار المحتوى
+ContentFrame.Name = "ContentFrame"
+ContentFrame.Parent = MainFrame
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.Position = UDim2.new(0, 0, 0, 40)
+ContentFrame.Size = UDim2.new(1, 0, 1, -40)
+
+-- إطار التمرير
+ScrollingFrame.Name = "ScrollingFrame"
+ScrollingFrame.Parent = ContentFrame
+ScrollingFrame.BackgroundTransparency = 1
+ScrollingFrame.BorderSizePixel = 0
+ScrollingFrame.Size = UDim2.new(1, -10, 1, -10)
+ScrollingFrame.Position = UDim2.new(0, 5, 0, 5)
+ScrollingFrame.ScrollBarThickness = 8
+ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 120)
+
+-- وظيفة إنشاء الأزرار
+local function createButton(name, text, position, callback)
+    local Button = Instance.new("TextButton")
+    local ButtonCorner = Instance.new("UICorner")
+    
+    Button.Name = name
+    Button.Parent = ScrollingFrame
+    Button.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    Button.BorderSizePixel = 0
+    Button.Position = position
+    Button.Size = UDim2.new(0, 180, 0, 35)
+    Button.Font = Enum.Font.Gotham
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 14
+    
+    ButtonCorner.CornerRadius = UDim.new(0, 6)
+    ButtonCorner.Parent = Button
+    
+    -- تأثير الحوم
+    Button.MouseEnter:Connect(function()
+        local tween = TweenService:Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 80, 100)})
+        tween:Play()
+    end)
+    
+    Button.MouseLeave:Connect(function()
+        local tween = TweenService:Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 80)})
+        tween:Play()
+    end)
+    
+    if callback then
+        Button.MouseButton1Click:Connect(callback)
+    end
+    
+    return Button
+end
+
+-- وظيفة إنشاء الشرائح المنزلقة
+local function createSlider(name, text, position, minVal, maxVal, defaultVal, callback)
+    local SliderFrame = Instance.new("Frame")
+    local SliderLabel = Instance.new("TextLabel")
+    local SliderBar = Instance.new("Frame")
+    local SliderFill = Instance.new("Frame")
+    local SliderButton = Instance.new("TextButton")
+    local ValueLabel = Instance.new("TextLabel")
+    
+    SliderFrame.Name = name
+    SliderFrame.Parent = ScrollingFrame
+    SliderFrame.BackgroundTransparency = 1
+    SliderFrame.Position = position
+    SliderFrame.Size = UDim2.new(0, 360, 0, 60)
+    
+    SliderLabel.Name = "Label"
+    SliderLabel.Parent = SliderFrame
+    SliderLabel.BackgroundTransparency = 1
+    SliderLabel.Size = UDim2.new(1, 0, 0, 20)
+    SliderLabel.Font = Enum.Font.Gotham
+    SliderLabel.Text = text
+    SliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SliderLabel.TextSize = 14
+    SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    SliderBar.Name = "Bar"
+    SliderBar.Parent = SliderFrame
+    SliderBar.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    SliderBar.BorderSizePixel = 0
+    SliderBar.Position = UDim2.new(0, 0, 0, 25)
+    SliderBar.Size = UDim2.new(1, -80, 0, 20)
+    
+    SliderFill.Name = "Fill"
+    SliderFill.Parent = SliderBar
+    SliderFill.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
+    SliderFill.BorderSizePixel = 0
+    SliderFill.Size = UDim2.new((defaultVal - minVal) / (maxVal - minVal), 0, 1, 0)
+    
+    SliderButton.Name = "Button"
+    SliderButton.Parent = SliderBar
+    SliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    SliderButton.BorderSizePixel = 0
+    SliderButton.Position = UDim2.new((defaultVal - minVal) / (maxVal - minVal), -8, 0, -4)
+    SliderButton.Size = UDim2.new(0, 16, 0, 28)
+    SliderButton.Text = ""
+    
+    ValueLabel.Name = "Value"
+    ValueLabel.Parent = SliderFrame
+    ValueLabel.BackgroundTransparency = 1
+    ValueLabel.Position = UDim2.new(1, -75, 0, 25)
+    ValueLabel.Size = UDim2.new(0, 75, 0, 20)
+    ValueLabel.Font = Enum.Font.Gotham
+    ValueLabel.Text = tostring(defaultVal)
+    ValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ValueLabel.TextSize = 14
+    
+    -- وظيفة الشريحة المنزلقة
+    local dragging = false
+    
+    SliderButton.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mouse = UserInputService:GetMouseLocation()
+            local relativeX = mouse.X - SliderBar.AbsolutePosition.X
+            local percentage = math.clamp(relativeX / SliderBar.AbsoluteSize.X, 0, 1)
+            local value = math.floor(minVal + (maxVal - minVal) * percentage)
+            
+            SliderFill.Size = UDim2.new(percentage, 0, 1, 0)
+            SliderButton.Position = UDim2.new(percentage, -8, 0, -4)
+            ValueLabel.Text = tostring(value)
+            
+            if callback then
+                callback(value)
+            end
+        end
+    end)
+    
+    return SliderFrame
+end
+
+-- إنشاء الأزرار والعناصر
+local speedButton = createButton("SpeedButton", "🏃 تفعيل السرعة", UDim2.new(0, 10, 0, 10), function()
+    speedEnabled = not speedEnabled
+    if speedEnabled then
+        speedButton.Text = "🏃 إيقاف السرعة"
+        speedButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+    else
+        speedButton.Text = "🏃 تفعيل السرعة"
+        speedButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    end
+end)
+
+local jumpButton = createButton("JumpButton", "🦘 تفعيل القفز العالي", UDim2.new(0, 200, 0, 10), function()
+    jumpEnabled = not jumpEnabled
+    if jumpEnabled then
+        jumpButton.Text = "🦘 إيقاف القفز العالي"
+        jumpButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+    else
+        jumpButton.Text = "🦘 تفعيل القفز العالي"
+        jumpButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    end
+end)
+
+local flyButton = createButton("FlyButton", "🚁 تفعيل الطيران", UDim2.new(0, 10, 0, 55), function()
+    flyEnabled = not flyEnabled
+    if flyEnabled then
+        flyButton.Text = "🚁 إيقاف الطيران"
+        flyButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+    else
+        flyButton.Text = "🚁 تفعيل الطيران"
+        flyButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    end
+end)
+
+local noclipButton = createButton("NoclipButton", "👻 تفعيل اختراق الجدران", UDim2.new(0, 200, 0, 55), function()
+    noclipEnabled = not noclipEnabled
+    if noclipEnabled then
+        noclipButton.Text = "👻 إيقاف اختراق الجدران"
+        noclipButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+    else
+        noclipButton.Text = "👻 تفعيل اختراق الجدران"
+        noclipButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    end
+end)
+
+-- شريحة السرعة
+local speedSlider = createSlider("SpeedSlider", "⚡ سرعة الحركة:", UDim2.new(0, 10, 0, 110), 16, 200, 16, function(value)
+    currentSpeed = value
+end)
+
+-- شريحة القفز
+local jumpSlider = createSlider("JumpSlider", "🦘 قوة القفز:", UDim2.new(0, 10, 0, 180), 50, 500, 50, function(value)
+    currentJumpPower = value
+end)
+
+-- إضافة المزيد من الأزرار
+local teleportButton = createButton("TeleportButton", "📍 التنقل السريع", UDim2.new(0, 10, 0, 250), function()
+    -- وضع كود التنقل هنا
+    print("تم تفعيل التنقل السريع")
+end)
+
+local espButton = createButton("ESPButton", "👁️ رؤية اللاعبين", UDim2.new(0, 200, 0, 250), function()
+    -- وضع كود ESP هنا
+    print("تم تفعيل رؤية اللاعبين")
+end)
+
+local autoFarmButton = createButton("AutoFarmButton", "🌾 الزراعة التلقائية", UDim2.new(0, 10, 0, 295), function()
+    -- وضع كود Auto Farm هنا
+    print("تم تفعيل الزراعة التلقائية")
+end)
+
+local infiniteJumpButton = createButton("InfiniteJumpButton", "∞ قفز لا نهائي", UDim2.new(0, 200, 0, 295), function()
+    -- وضع كود Infinite Jump هنا
+    print("تم تفعيل القفز اللانهائي")
+end)
+
+-- تحديث حجم المحتوى القابل للتمرير
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 350)
+
+-- وظائف الإغلاق والتصغير
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+local minimized = false
+MinimizeButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        ContentFrame.Visible = false
+        MainFrame.Size = UDim2.new(0, 400, 0, 40)
+        MinimizeButton.Text = "+"
+    else
+        ContentFrame.Visible = true
+        MainFrame.Size = UDim2.new(0, 400, 0, 500)
+        MinimizeButton.Text = "-"
+    end
+end)
+
+-- تطبيق الوظائف
+local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+-- حلقة التحديث الرئيسية
+RunService.Heartbeat:Connect(function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        local currentHumanoid = LocalPlayer.Character.Humanoid
+        
+        -- تطبيق السرعة
+        if speedEnabled then
+            currentHumanoid.WalkSpeed = currentSpeed
+        else
+            currentHumanoid.WalkSpeed = 16
+        end
+        
+        -- تطبيق القفز
+        if jumpEnabled then
+            currentHumanoid.JumpPower = currentJumpPower
+        else
+            currentHumanoid.JumpPower = 50
+        end
+        
+        -- تطبيق اختراق الجدران
+        if noclipEnabled and LocalPlayer.Character then
+            for _, part in pairs(LocalPlayer.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        else
+            if LocalPlayer.Character then
+                for _, part in pairs(LocalPlayer.Character:GetChildren()) do
+                    if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                        part.CanCollide = true
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- رسالة ترحيب
+local function showNotification(text)
+    local NotificationGui = Instance.new("ScreenGui")
+    local NotificationFrame = Instance.new("Frame")
+    local NotificationLabel = Instance.new("TextLabel")
+    
+    NotificationGui.Name = "Notification"
+    NotificationGui.Parent = PlayerGui
+    
+    NotificationFrame.Parent = NotificationGui
+    NotificationFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+    NotificationFrame.BorderSizePixel = 0
+    NotificationFrame.Position = UDim2.new(1, -320, 0, 20)
+    NotificationFrame.Size = UDim2.new(0, 300, 0, 60)
+    
+    NotificationLabel.Parent = NotificationFrame
+    NotificationLabel.BackgroundTransparency = 1
+    NotificationLabel.Size = UDim2.new(1, -20, 1, 0)
+    NotificationLabel.Position = UDim2.new(0, 10, 0, 0)
+    NotificationLabel.Font = Enum.Font.Gotham
+    NotificationLabel.Text = text
+    NotificationLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    NotificationLabel.TextSize = 14
+    NotificationLabel.TextWrapped = true
+    
+    -- تأثير الظهور
+    NotificationFrame:TweenPosition(UDim2.new(1, -320, 0, 20), "Out", "Quad", 0.5, true)
+    
+    -- حذف الإشعار بعد 3 ثواني
+    wait(3)
+    NotificationFrame:TweenPosition(UDim2.new(1, 0, 0, 20), "In", "Quad", 0.5, true)
+    wait(0.5)
+    NotificationGui:Destroy()
+end
+
+-- إظهار رسالة ترحيب
+spawn(function()
+    showNotification("🎉 مرحباً بك في السكريپت المتقدم!\n✨ تم تحميل جميع الميزات بنجاح")
+end)
+
+print("تم تحميل السكريپت بنجاح! 🚀")
